@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace Unity.WebRTC
@@ -47,6 +46,9 @@ namespace Unity.WebRTC
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public class RTCRtpSendParameters
     {
         public string TransactionId => _transactionId;
@@ -88,6 +90,90 @@ namespace Unity.WebRTC
             Marshal.FreeCoTaskMem(instance.encodings);
             Marshal.FreeCoTaskMem(ptr);
         }
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public enum RTCRtpTransceiverDirection
+    {
+        SendRecv = 0,
+        SendOnly = 1,
+        RecvOnly = 2,
+        Inactive = 3,
+        Stopped = 4
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public class RTCRtpCodecCapability
+    {
+        public int? channels;
+        public int? clockRate;
+        public string mimeType;
+        public string sdpFmtpLine;
+
+        internal RTCRtpCodecCapability(RTCRtpCodecCapabilityInternal v)
+        {
+            mimeType = v.mimeType.AsAnsiStringWithFreeMem();
+            clockRate = v.clockRate;
+            channels = v.channels;
+            sdpFmtpLine =
+                v.sdpFmtpLine != IntPtr.Zero ? v.sdpFmtpLine.AsAnsiStringWithFreeMem() : null;
+        }
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public class RTCRtpHeaderExtensionCapability
+    {
+        public string uri;
+
+        internal RTCRtpHeaderExtensionCapability(RTCRtpHeaderExtensionCapabilityInternal v)
+        {
+            uri = v.uri.AsAnsiStringWithFreeMem();
+        }
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public class RTCRtpCapabilities
+    {
+        public RTCRtpCodecCapability[] codecs;
+        public RTCRtpHeaderExtensionCapability[] headerExtensions;
+
+        internal RTCRtpCapabilities(RTCRtpCapabilitiesInternal capabilities)
+        {
+            codecs = Array.ConvertAll(capabilities.codecs.ToArray(),
+                v => new RTCRtpCodecCapability(v));
+            headerExtensions = Array.ConvertAll(capabilities.extensionHeaders.ToArray(),
+                v => new RTCRtpHeaderExtensionCapability(v));
+        }
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct RTCRtpCodecCapabilityInternal
+    {
+        public IntPtr mimeType;
+        public Optional<int> clockRate;
+        public Optional<int> channels;
+        public IntPtr sdpFmtpLine;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct RTCRtpHeaderExtensionCapabilityInternal
+    {
+        public IntPtr uri;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct RTCRtpCapabilitiesInternal
+    {
+        public MarshallingArray<RTCRtpCodecCapabilityInternal> codecs;
+        public MarshallingArray<RTCRtpHeaderExtensionCapabilityInternal> extensionHeaders;
     }
 
     [StructLayout(LayoutKind.Sequential)]

@@ -48,6 +48,39 @@ namespace webrtc
         return static_cast<T*>(dst);
     }
 
+    template<typename T>
+    struct Optional
+    {
+        bool hasValue;
+        T value;
+    };
+
+    template<typename T>
+    Optional<T> ConvertOptional(absl::optional<T>& value)
+    {
+        Optional<T> dst;
+        dst.hasValue = value.has_value();
+        if(dst.hasValue)
+        {
+            dst.value = value.value();
+        }
+        return dst;
+    }
+
+    std::string ConvertSdp(std::map<std::string, std::string> map)
+    {
+        std::string str = "";
+        for (const auto& pair : map)
+        {
+            if(!str.empty())
+            {
+                str += ";";
+            }
+            str += pair.first + "=" + pair.second;
+        }
+        return str;
+    }
+
     ///
     /// avoid compile erorr for vector<bool>
     /// https://en.cppreference.com/w/cpp/container/vector_bool
@@ -782,6 +815,58 @@ extern "C"
         }
         const ::webrtc::RTCError error = sender->SetParameters(dst);
         return error.type();
+    }
+
+    struct RTCRtpCodecCapability
+    {
+        char* mimeType;
+        Optional<int32_t> clockRate;
+        Optional<int32_t> channels;
+        char* sdpFmtpLine;
+    };
+
+    struct RTCRtpHeaderExtensionCapability
+    {
+        char* uri;
+    };
+
+    struct RTCRtpCapabilities
+    {
+        int32_t codecsLength;
+        RTCRtpCodecCapability* codecs;
+        int32_t extensionHeadersLength;
+        RTCRtpHeaderExtensionCapability* extensionHeaders;
+    };
+
+    UNITY_INTERFACE_EXPORT void ContextGetSenderCapabilities(Context* context, TrackKind trackKind, RTCRtpCapabilities** parameters)
+    {
+        RtpCapabilities src;
+        cricket::MediaType type =
+            trackKind == TrackKind::Audio ?
+            cricket::MEDIA_TYPE_AUDIO : cricket::MEDIA_TYPE_VIDEO;
+        context->GetRtpSenderCapabilities(type, &src);
+
+        RTCRtpCapabilities* dst = static_cast<RTCRtpCapabilities*>(CoTaskMemAlloc(sizeof(RTCRtpCapabilities)));
+        dst->codecsLength = static_cast<uint32_t>(src.codecs.size());
+        dst->codecs = static_cast<RTCRtpCodecCapability*>(
+            CoTaskMemAlloc(sizeof(RTCRtpCodecCapability) * src.codecs.size()));
+
+        for (size_t i = 0; i < src.codecs.size(); i++)
+        {
+            dst->codecs[i].mimeType = ConvertString(src.codecs[i].mime_type());
+            dst->codecs[i].clockRate = ConvertOptional(src.codecs[i].clock_rate);
+            dst->codecs[i].channels = ConvertOptional(src.codecs[i].num_channels);
+            dst->codecs[i].sdpFmtpLine = ConvertString(ConvertSdp(src.codecs[i].parameters));
+        }
+
+        dst->extensionHeadersLength = static_cast<uint32_t>(src.header_extensions.size());
+        dst->extensionHeaders = static_cast<RTCRtpHeaderExtensionCapability*>(
+            CoTaskMemAlloc(sizeof(RTCRtpHeaderExtensionCapability) * src.header_extensions.size()));
+        for (size_t i = 0; i < src.header_extensions.size(); i++)
+        {
+            dst->extensionHeaders[i].uri = ConvertString(src.header_extensions[i].uri);
+        }
+        *parameters = dst;
     }
 
     UNITY_INTERFACE_EXPORT bool SenderReplaceTrack(RtpSenderInterface* sender, MediaStreamTrackInterface* track)
