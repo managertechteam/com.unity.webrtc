@@ -15,14 +15,10 @@ namespace Unity.WebRTC
         internal RTCRtpEncodingParameters(RTCRtpEncodingParametersInternal parameter)
         {
             active = parameter.active;
-            if (parameter.hasValueMaxBitrate)
-                maxBitrate = parameter.maxBitrate;
-            if (parameter.hasValueMinBitrate)
-                minBitrate = parameter.minBitrate;
-            if (parameter.hasValueMaxFramerate)
-                maxFramerate = parameter.maxFramerate;
-            if (parameter.hasValueScaleResolutionDownBy)
-                scaleResolutionDownBy = parameter.scaleResolutionDownBy;
+            maxBitrate = parameter.maxBitrate;
+            minBitrate = parameter.minBitrate;
+            maxFramerate = parameter.maxFramerate;
+            scaleResolutionDownBy = parameter.scaleResolutionDownBy;
             if(parameter.rid != IntPtr.Zero)
                 rid = parameter.rid.AsAnsiStringWithFreeMem();
         }
@@ -30,18 +26,10 @@ namespace Unity.WebRTC
         internal void CopyInternal(ref RTCRtpEncodingParametersInternal instance)
         {
             instance.active = active;
-            instance.hasValueMaxBitrate = maxBitrate.HasValue;
-            if(maxBitrate.HasValue)
-                instance.maxBitrate = maxBitrate.Value;
-            instance.hasValueMinBitrate = minBitrate.HasValue;
-            if (minBitrate.HasValue)
-                instance.minBitrate = minBitrate.Value;
-            instance.hasValueMaxFramerate = maxFramerate.HasValue;
-            if (maxFramerate.HasValue)
-                instance.maxFramerate = maxFramerate.Value;
-            instance.hasValueScaleResolutionDownBy = scaleResolutionDownBy.HasValue;
-            if (scaleResolutionDownBy.HasValue)
-                instance.scaleResolutionDownBy = scaleResolutionDownBy.Value;
+            instance.maxBitrate = maxBitrate;
+            instance.minBitrate = minBitrate;
+            instance.maxFramerate = maxFramerate;
+            instance.scaleResolutionDownBy = scaleResolutionDownBy;
             instance.rid = string.IsNullOrEmpty(rid) ? IntPtr.Zero : Marshal.StringToCoTaskMemAnsi(rid);
         }
     }
@@ -185,18 +173,10 @@ namespace Unity.WebRTC
     {
         [MarshalAs(UnmanagedType.U1)]
         public bool active;
-        [MarshalAs(UnmanagedType.U1)]
-        public bool hasValueMaxBitrate;
-        public ulong maxBitrate;
-        [MarshalAs(UnmanagedType.U1)]
-        public bool hasValueMinBitrate;
-        public ulong minBitrate;
-        [MarshalAs(UnmanagedType.U1)]
-        public bool hasValueMaxFramerate;
-        public uint maxFramerate;
-        [MarshalAs(UnmanagedType.U1)]
-        public bool hasValueScaleResolutionDownBy;
-        public double scaleResolutionDownBy;
+        public OptionalUlong maxBitrate;
+        public OptionalUlong minBitrate;
+        public OptionalUint maxFramerate;
+        public OptionalDouble scaleResolutionDownBy;
         public IntPtr rid;
     }
 }
