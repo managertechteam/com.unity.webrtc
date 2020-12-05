@@ -60,9 +60,7 @@ namespace Unity.WebRTC
 
         internal RTCRtpSendParameters(RTCRtpSendParametersInternal parameters)
         {
-            int length = parameters.encodingsLength;
-            RTCRtpEncodingParametersInternal[] encodings =
-                parameters.encodings.AsArray<RTCRtpEncodingParametersInternal>(length);
+            RTCRtpEncodingParametersInternal[] encodings = parameters.encodings.ToArray();
             _encodings = Array.ConvertAll(encodings, _ => new RTCRtpEncodingParameters(_));
             _transactionId = parameters.transactionId.AsAnsiStringWithFreeMem();
         }
@@ -76,8 +74,7 @@ namespace Unity.WebRTC
                 _encodings[i].CopyInternal(ref encodings[i]);
             }
             RTCRtpSendParametersInternal instance = default;
-            instance.encodingsLength = _encodings.Length;
-            instance.encodings = IntPtrExtension.ToPtr(encodings);
+            instance.encodings.Set(encodings);
             instance.transactionId = Marshal.StringToCoTaskMemAnsi(_transactionId);
             IntPtr ptr = Marshal.AllocCoTaskMem(Marshal.SizeOf(instance));
             Marshal.StructureToPtr(instance, ptr, false);
@@ -87,7 +84,7 @@ namespace Unity.WebRTC
         static internal void DeletePtr(IntPtr ptr)
         {
             var instance = Marshal.PtrToStructure<RTCRtpSendParametersInternal>(ptr);
-            Marshal.FreeCoTaskMem(instance.encodings);
+            Marshal.FreeCoTaskMem(instance.encodings.ptr);
             Marshal.FreeCoTaskMem(ptr);
         }
     }
@@ -158,8 +155,8 @@ namespace Unity.WebRTC
     internal struct RTCRtpCodecCapabilityInternal
     {
         public IntPtr mimeType;
-        public Optional<int> clockRate;
-        public Optional<int> channels;
+        public OptionalInt clockRate;
+        public OptionalInt channels;
         public IntPtr sdpFmtpLine;
     }
 
@@ -179,8 +176,7 @@ namespace Unity.WebRTC
     [StructLayout(LayoutKind.Sequential)]
     internal struct RTCRtpSendParametersInternal
     {
-        public int encodingsLength;
-        public IntPtr encodings;
+        public MarshallingArray<RTCRtpEncodingParametersInternal> encodings;
         public IntPtr transactionId;
     }
 
