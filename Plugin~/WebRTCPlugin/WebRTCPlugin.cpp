@@ -11,6 +11,8 @@
 #include "GraphicsDevice/Vulkan/VulkanGraphicsDevice.h"
 #endif
 
+#pragma pack 8
+
 namespace unity
 {
 namespace webrtc

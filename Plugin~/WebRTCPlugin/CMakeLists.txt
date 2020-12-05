@@ -1,9 +1,9 @@
 add_library(WebRTCLib STATIC)
 
 # Select runtime library (MT, MTD) on windows platform
-set_property(
-  TARGET WebRTCLib
-  PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
+
+set_target_properties(WebRTCLib
+  PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
 )
 
 target_sources(WebRTCLib
